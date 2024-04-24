@@ -27,7 +27,7 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
         pygame.sprite.Sprite.__init__(self) # inicializando a classe pygame.sprite.Sprite
         
         #self.som_pular = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
-        self.som_pular.set_volume(1) #aumentar o som do pulo
+        #self.som_pular.set_volume(1) #aumentar o som do pulo
         
         self.imagens_dinossauro = [] #crio uma lista que recebe a spritesheets
         for i in range(3):
@@ -45,7 +45,7 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
         
     def pular(self): #se eu apertar espaço ele muda a variável pulo para true
         self.pulo = True
-        self.som_pular.play() #tocar som
+        #self.som_pular.play() #tocar som
     
     #metodo update 
     def update(self): #estamos atualizando a imagem do dinossauro para criar uma animação. 
