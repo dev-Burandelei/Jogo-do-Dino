@@ -13,16 +13,16 @@ diretorio_img = os.path.join(diretorio_princ, 'Imagens')
 
 Largura = 640 #da tela
 Altura = 480 #da tela
-
 BRANCO = (255, 255, 255)
-
 tela = pygame.display.set_mode((Largura, Altura))
 
 pygame.display.set_caption('Dino Game') #definimos o título da janela do jogo como 'Dino'.
 sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets.png")).convert_alpha()
 
+
 #criando a classe do Dino
 class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
+    
     def __init__(self): #O método __init__ é o construtor da classe
         pygame.sprite.Sprite.__init__(self) # inicializando a classe pygame.sprite.Sprite
         
@@ -63,7 +63,11 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
         self.index_lista += 0.25
         self.image = self.imagens_dinossauro[int(self.index_lista)]
       
-        
+
+todas_as_sprites = pygame.sprite.Group() #criando um grupo de sprites*
+dino = Dino() #instanciando a class Dino
+todas_as_sprites.add(dino) #Criando uma instância da classe Dino e a adicionamos ao grupo de sprites.
+
 #criando a classe das nuvens
 class Nuvens(pygame.sprite.Sprite):
     def __init__(self):
@@ -78,13 +82,29 @@ class Nuvens(pygame.sprite.Sprite):
            self.rect.x = Largura #volta para o inicio
            self.rect.y = randrange(50, 200, 50) #intervalo de 50 e 200 variando de 50 em 50
         self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
-    
-todas_as_sprites = pygame.sprite.Group() #criando um grupo de sprites*
-dino = Dino() #instanciando a class Dino
-todas_as_sprites.add(dino) #Criando uma instância da classe Dino e a adicionamos ao grupo de sprites.
+
 for i in range(4): #criando 4 nuvens
     nuvem = Nuvens() #instanciando a class nuvens
     todas_as_sprites.add(nuvem)
+    
+#criando a classe do chão
+class Chao(pygame.sprite.Sprite):
+    def __init__(self, x):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = sprite_sheet.subsurface((6*32, 0), (32, 32))
+        self.image = pygame.transform.scale(self.image, (32 * 3, 32 * 3))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = Altura - 32 * 2  # Altura do chão é 32*2 pixels
+
+largura_chao = Largura // (32 * 2)  # Determina quantos sprites do chão são necessários para preencher a largura da tela
+chao_sprites = pygame.sprite.Group()  # Cria um grupo para os sprites do chão
+for i in range(largura_chao):  # Cria os sprites do chão e os posiciona
+    chao = Chao(i * 32 * 2)  # Multiplica por 32*2 para garantir que os sprites se encaixem perfeitamente
+    chao_sprites.add(chao)
+    
+# Adicionando os sprites do chão ao grupo de todas as sprites
+todas_as_sprites.add(chao_sprites)
 
 relogio = pygame.time.Clock() #Criamos um objeto de relógio
 while True:
