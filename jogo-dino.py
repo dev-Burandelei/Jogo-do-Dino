@@ -19,6 +19,9 @@ tela = pygame.display.set_mode((Largura, Altura))
 pygame.display.set_caption('Dino Game') #definimos o título da janela do jogo como 'Dino'.
 sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets.png")).convert_alpha()
 
+#som_colisao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
+#self.som_pular.set_volume(1) #aumentar o som da colisao
+colidiu = False
 
 #criando a classe do Dino
 class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
@@ -39,6 +42,7 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
         self.image = self.imagens_dinossauro[self.index_lista] #estamos definindo self.image como a primeira imagem na lista de imagens do dinossauro.
 
         self.rect = self.image.get_rect() #pegar o retangulo ao redor do frame
+        self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite do dinossauro
         self.posicao_y_ini = Altura - 64 - 96//2 #pegando o canto superior esquerdo do frame
         self.rect.center = (100, Altura-64) #posicionar o retangulo
         self.pulo = False
@@ -106,6 +110,26 @@ for i in range(largura_chao):  # Cria os sprites do chão e os posiciona
 # Adicionando os sprites do chão ao grupo de todas as sprites
 todas_as_sprites.add(chao_sprites)
 
+class Cacto(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = sprite_sheet.subsurface((5*32, 0), (32, 32))
+        self.image = pygame.transform.scale(self.image, (32 * 3, 32 * 3))
+        self.rect = self.image.get_rect() #pegar o retangulo do cacto para posicionar ele na tela
+        self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite do cactp
+        self.rect.center = (Largura, Altura - 64*1.1)
+    
+    def update(self):
+        if self.rect.topright[0] < 0:
+           self.rect.x = Largura #volta para o inicio
+        self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+
+cacto = Cacto()
+todas_as_sprites.add(cacto)
+
+grupo_obstaculo = pygame.sprite.Group() #criando um grupo de obstáculos
+grupo_obstaculo.add(cacto) #add os obstáculos dentro do grupo
+
 relogio = pygame.time.Clock() #Criamos um objeto de relógio
 while True:
     relogio.tick(30) #Limita o jogo a rodar a 30 frames por segundo.
@@ -120,8 +144,17 @@ while True:
                     pass
                 else:
                     dino.pular()
-    todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
-    todas_as_sprites.update() # Atualiza todos os sprites no grupo 
     
+    colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
+    todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
+    if colisoes and colidiu == False:
+        #som_colisao.play()
+        colidiu = True
+        #pass #tirar quando inserir o som
+    if colidiu == True:
+       pass
+    else:
+        todas_as_sprites.update() # Atualiza todos os sprites no grupo 
+ 
     pygame.display.flip() # Atualiza a tela inteira para o usuário ver as mudanças.
         
