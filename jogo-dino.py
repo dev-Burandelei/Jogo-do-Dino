@@ -17,7 +17,7 @@ BRANCO = (255, 255, 255)
 tela = pygame.display.set_mode((Largura, Altura))
 
 pygame.display.set_caption('Dino Game') #definimos o título da janela do jogo como 'Dino'.
-sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets.png")).convert_alpha()
+sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets2.png")).convert_alpha()
 
 #som_colisao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
 #self.som_pular.set_volume(1) #aumentar o som da colisao
@@ -127,8 +127,36 @@ class Cacto(pygame.sprite.Sprite):
 cacto = Cacto()
 todas_as_sprites.add(cacto)
 
+class Maritaca(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.imagens_maritaca = []
+        for i in range(8, 10):
+            img = sprite_sheet.subsurface((i * 32, 0), (32, 32))  # recorta os dois últimos frames
+            img = pygame.transform.scale(img, (32 * 2, 32 * 2))  # aumenta o tamanho da imagem
+            self.imagens_maritaca.append(img)
+        
+        self.index_lista = 0
+        self.image = self.imagens_maritaca[self.index_lista]
+        self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite da maritaca para colisao
+        self.rect = self.image.get_rect() #pegar o retangulo ao redor do frame
+        self.rect.center = (Largura, 300) #posicionar o retangulo
+    
+    def update(self):
+        if self.rect.topright[0] < 0:
+           self.rect.x = Largura #volta para o inicio
+        self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+        if self.index_lista > 1: #criando o efeito de looping
+            self.index_lista = 0
+        self.index_lista += 0.25
+        self.image = self.imagens_maritaca[int(self.index_lista)]
+            
+maritaca = Maritaca()
+todas_as_sprites.add(maritaca)
+
 grupo_obstaculo = pygame.sprite.Group() #criando um grupo de obstáculos
 grupo_obstaculo.add(cacto) #add os obstáculos dentro do grupo
+grupo_obstaculo.add(maritaca) #add os obstáculos dentro do grupo
 
 relogio = pygame.time.Clock() #Criamos um objeto de relógio
 while True:
