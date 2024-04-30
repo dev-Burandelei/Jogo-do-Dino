@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from sys import exit
-from random import randrange
+from random import randrange, choice
 import os
 
 pygame.init()
@@ -22,6 +22,7 @@ sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesh
 #som_colisao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
 #self.som_pular.set_volume(1) #aumentar o som da colisao
 colidiu = False
+escolha_obstaculo = choice([0, 1])
 
 #criando a classe do Dino
 class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
@@ -117,13 +118,18 @@ class Cacto(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (32 * 3, 32 * 3))
         self.rect = self.image.get_rect() #pegar o retangulo do cacto para posicionar ele na tela
         self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite do cactp
+        self.escolha = escolha_obstaculo 
         self.rect.center = (Largura, Altura - 64*1.1)
+        self.rect.x = Largura
+
     
     def update(self):
-        if self.rect.topright[0] < 0:
-           self.rect.x = Largura #volta para o inicio
-        self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+        if self.escolha == 0:
+            if self.rect.topright[0] < 0:
+                self.rect.x = Largura #volta para o inicio
+            self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
 
+        
 cacto = Cacto()
 todas_as_sprites.add(cacto)
 
@@ -139,17 +145,20 @@ class Maritaca(pygame.sprite.Sprite):
         self.index_lista = 0
         self.image = self.imagens_maritaca[self.index_lista]
         self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite da maritaca para colisao
+        self.escolha = escolha_obstaculo 
         self.rect = self.image.get_rect() #pegar o retangulo ao redor do frame
         self.rect.center = (Largura, 300) #posicionar o retangulo
+        self.rect.x = Largura
     
     def update(self):
-        if self.rect.topright[0] < 0:
-           self.rect.x = Largura #volta para o inicio
-        self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
-        if self.index_lista > 1: #criando o efeito de looping
-            self.index_lista = 0
-        self.index_lista += 0.25
-        self.image = self.imagens_maritaca[int(self.index_lista)]
+        if self.escolha == 1:
+            if self.rect.topright[0] < 0:
+                self.rect.x = Largura #volta para o inicio
+            self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+            if self.index_lista > 1: #criando o efeito de looping
+                self.index_lista = 0
+            self.index_lista += 0.25
+            self.image = self.imagens_maritaca[int(self.index_lista)]
             
 maritaca = Maritaca()
 todas_as_sprites.add(maritaca)
@@ -175,6 +184,14 @@ while True:
     
     colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
     todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
+    
+    if cacto.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0:
+        escolha_obstaculo = choice([0, 1])
+        cacto.rect.x = Largura
+        maritaca.rect.x = Largura
+        cacto.escolha = escolha_obstaculo
+        maritaca.escolha = escolha_obstaculo
+            
     if colisoes and colidiu == False:
         #som_colisao.play()
         colidiu = True
