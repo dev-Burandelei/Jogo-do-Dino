@@ -101,15 +101,23 @@ class Chao(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = Altura - 32 * 2  # Altura do chão é 32*2 pixels
+        self.velocidade = 10  # Velocidade de movimento do chão
 
-largura_chao = Largura // (32 * 2)  # Determina quantos sprites do chão são necessários para preencher a largura da tela
+    def update(self):
+        self.rect.x -= self.velocidade  # Move o chão para a esquerda
+        if self.rect.right < 0:  # Se o sprite do chão sair da tela à esquerda
+            self.rect.x += Largura  # Move o sprite do chão para o final da tela
+
+# Criação dos sprites do chão
+largura_chao = Largura // (32 * 2) + 2  # Determina quantos sprites do chão são necessários para preencher a largura da tela
 chao_sprites = pygame.sprite.Group()  # Cria um grupo para os sprites do chão
 for i in range(largura_chao):  # Cria os sprites do chão e os posiciona
-    chao = Chao(i * 32 * 2)  # Multiplica por 32*2 para garantir que os sprites se encaixem perfeitamente
+    chao = Chao(i * 32 * 2)  # Multiplica por 32*3 para garantir que os sprites se encaixem perfeitamente
     chao_sprites.add(chao)
-    
-# Adicionando os sprites do chão ao grupo de todas as sprites
+
+# Adicionando o grupo de sprites do chão ao grupo de todas as sprites
 todas_as_sprites.add(chao_sprites)
+
 
 class Cacto(pygame.sprite.Sprite):
     def __init__(self):
