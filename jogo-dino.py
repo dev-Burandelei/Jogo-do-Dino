@@ -19,11 +19,65 @@ tela = pygame.display.set_mode((Largura, Altura))
 pygame.display.set_caption('Dino Game') #definimos o título da janela do jogo como 'Dino'.
 sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets2.png")).convert_alpha()
 
+#som_pontuacao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
+#self.som_pontuacao.set_volume(1) #aumentar o som da pontuacao
+
 #som_colisao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
 #self.som_pular.set_volume(1) #aumentar o som da colisao
 colidiu = False
 escolha_obstaculo = choice([0, 1])
+pontos_do_jogo = 0
+velocidade_do_jogo = 10
 
+def pontuacao(mensagem, tam_font, cor_texto):
+    fonte = pygame.font.SysFont('comicsansms', tam_font, True, False) #fonte do texto
+    msg = f'{mensagem}'
+    texto_final = fonte.render(msg, True, cor_texto)
+    return texto_final
+
+def mensagem_botao(mensagem, tam_font, cor_texto, cor_botao):
+    fonte = pygame.font.SysFont('arial', tam_font, True, False) #fonte do texto
+    texto = fonte.render(mensagem, True, cor_texto)
+    texto_rect = texto.get_rect(center=(Largura/2, Altura - 90))
+
+    # Criar um retângulo para representar o botão
+    largura_botao = texto_rect.width + 20  # Adicione um espaço extra em ambos os lados do texto
+    altura_botao = texto_rect.height + 20  # Adicione um espaço extra em cima e embaixo do texto
+    botao_rect = pygame.Rect(0, 0, largura_botao, altura_botao)
+    botao_rect.center = texto_rect.center  # Centraliza o retângulo no texto
+
+    # Desenhar o retângulo do botão na tela
+    pygame.draw.rect(tela, cor_botao, botao_rect)
+
+    # Desenhar o texto na tela
+    tela.blit(texto, texto_rect)
+
+def tela_start():
+    dino_fundo = os.path.join(diretorio_img, "dino-capa.png")        
+    dino_fundo = pygame.image.load(dino_fundo).convert()
+    # Redimensiona a imagem de fundo para o tamanho da tela
+    dino_fundo = pygame.transform.scale(dino_fundo, (Largura, Altura))
+     # Desenha a imagem de fundo na superfície da tela
+    tela.blit(dino_fundo, (0, 0))
+
+    mensagem_botao('Pressione uma tecla para jogar', 20, (0,0,0), (200, 200, 200))
+    #texto = mensagem('Pressione uma tecla para jogar', 40, (0,0,0))
+    # Define a posição do texto
+    #texto_rect = texto.get_rect(center=(Largura/2, Altura/2))
+    # Desenha o texto na tela
+    #tela.blit(texto, texto_rect)
+    pygame.display.flip()
+    esperar_jogador()
+    
+def esperar_jogador():
+    esperando = True
+    while esperando:
+        relogio.tick(30)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                esperando = False
+            if event.type == pygame.KEYUP:
+                esperando = False
 #criando a classe do Dino
 class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
     
@@ -86,7 +140,7 @@ class Nuvens(pygame.sprite.Sprite):
         if self.rect.topright[0] < 0:
            self.rect.x = Largura #volta para o inicio
            self.rect.y = randrange(50, 200, 50) #intervalo de 50 e 200 variando de 50 em 50
-        self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+        self.rect.x -= velocidade_do_jogo #vai se movimentar a cada 10 frames do jogo
 
 for i in range(4): #criando 4 nuvens
     nuvem = Nuvens() #instanciando a class nuvens
@@ -135,7 +189,7 @@ class Cacto(pygame.sprite.Sprite):
         if self.escolha == 0:
             if self.rect.topright[0] < 0:
                 self.rect.x = Largura #volta para o inicio
-            self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+            self.rect.x -= velocidade_do_jogo #vai se movimentar a cada 10 frames do jogo
 
         
 cacto = Cacto()
@@ -162,7 +216,7 @@ class Maritaca(pygame.sprite.Sprite):
         if self.escolha == 1:
             if self.rect.topright[0] < 0:
                 self.rect.x = Largura #volta para o inicio
-            self.rect.x -= 10 #vai se movimentar a cada 10 frames do jogo
+            self.rect.x -= velocidade_do_jogo #vai se movimentar a cada 10 frames do jogo
             if self.index_lista > 1: #criando o efeito de looping
                 self.index_lista = 0
             self.index_lista += 0.25
@@ -176,6 +230,9 @@ grupo_obstaculo.add(cacto) #add os obstáculos dentro do grupo
 grupo_obstaculo.add(maritaca) #add os obstáculos dentro do grupo
 
 relogio = pygame.time.Clock() #Criamos um objeto de relógio
+
+tela_start()
+
 while True:
     relogio.tick(30) #Limita o jogo a rodar a 30 frames por segundo.
     tela.fill(BRANCO) # Preenche a tela com a cor branca a cada iteração do loop
@@ -205,9 +262,24 @@ while True:
         colidiu = True
         #pass #tirar quando inserir o som
     if colidiu == True:
-       pass
+        if pontos_do_jogo % 100 == 0:
+            pontos_do_jogo += 1
+        pass
     else:
+        pontos_do_jogo += 1 # a cada interação do jogo no loop orincipal soma 1 ponto
         todas_as_sprites.update() # Atualiza todos os sprites no grupo 
+        exibir_pontuacao = pontuacao(pontos_do_jogo, 40, (0,0,0))
+        
+    if pontos_do_jogo % 100 ==  0:
+        #som_pontuacao.play()
+        if velocidade_do_jogo >= 23:
+            velocidade_do_jogo += 0 #velocidade continua constante
+        else:
+            velocidade_do_jogo += 1
+        
+        #print(velocidade_do_jogo)
+            
+    tela.blit(exibir_pontuacao, (520,30))
  
     pygame.display.flip() # Atualiza a tela inteira para o usuário ver as mudanças.
         
