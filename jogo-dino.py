@@ -3,6 +3,9 @@ from pygame.locals import *
 from sys import exit
 from random import randrange, choice
 import os
+import time
+import sys
+
 
 pygame.init()
 pygame.mixer.init()
@@ -29,6 +32,17 @@ escolha_obstaculo = choice([0, 1])
 pontos_do_jogo = 0
 velocidade_do_jogo = 10
 
+def reiniciar_jogo():
+    global colidiu, escolha_obstaculo, pontos_do_jogo, velocidade_do_jogo
+    pontos_do_jogo = 0
+    velocidade_do_jogo = 10
+    colidiu = False
+    dino.rect.y = Altura - 64 - 96//2
+    dino.pulo = False
+    maritaca.rect.x = Largura
+    cacto.rect.x = Largura
+    escolha_obstaculo = choice([0, 1])
+
 def pontuacao(mensagem, tam_font, cor_texto):
     fonte = pygame.font.SysFont('comicsansms', tam_font, True, False) #fonte do texto
     msg = f'{mensagem}'
@@ -46,30 +60,30 @@ def mensagem_botao(mensagem, tam_font, cor_texto, cor_botao):
     botao_rect = pygame.Rect(0, 0, largura_botao, altura_botao)
     botao_rect.center = texto_rect.center  # Centraliza o retângulo no texto
 
-    # Desenhar o retângulo do botão na tela
-    pygame.draw.rect(tela, cor_botao, botao_rect)
+    # Desenhar o retângulo arredondado do botão na tela
+    pygame.draw.rect(tela, cor_botao, botao_rect, border_radius=10)  # Ajuste o raio conforme necessário
+
+    # Desenhar o texto na tela
+    tela.blit(texto, texto_rect)
+    
+def mensagem_botao_over(mensagem, tam_font, cor_texto, cor_botao):
+    fonte = pygame.font.SysFont('arial', tam_font, True, False) #fonte do texto
+    texto = fonte.render(mensagem, True, cor_texto)
+    texto_rect = texto.get_rect(center=(Largura/2, Altura - 50))
+
+    # Criar um retângulo para representar o botão
+    largura_botao = texto_rect.width + 20  # Adicione um espaço extra em ambos os lados do texto
+    altura_botao = texto_rect.height + 20  # Adicione um espaço extra em cima e embaixo do texto
+    botao_rect = pygame.Rect(0, 0, largura_botao, altura_botao)
+    botao_rect.center = texto_rect.center  # Centraliza o retângulo no texto
+
+    # Desenhar o retângulo arredondado do botão na tela
+    pygame.draw.rect(tela, cor_botao, botao_rect, border_radius=10)  # Ajuste o raio conforme necessário
 
     # Desenhar o texto na tela
     tela.blit(texto, texto_rect)
 
-def tela_start():
-    dino_fundo = os.path.join(diretorio_img, "dino-capa.png")        
-    dino_fundo = pygame.image.load(dino_fundo).convert()
-    # Redimensiona a imagem de fundo para o tamanho da tela
-    dino_fundo = pygame.transform.scale(dino_fundo, (Largura, Altura))
-     # Desenha a imagem de fundo na superfície da tela
-    tela.blit(dino_fundo, (0, 0))
-
-    mensagem_botao('Pressione uma tecla para jogar', 20, (0,0,0), (200, 200, 200))
-    #texto = mensagem('Pressione uma tecla para jogar', 40, (0,0,0))
-    # Define a posição do texto
-    #texto_rect = texto.get_rect(center=(Largura/2, Altura/2))
-    # Desenha o texto na tela
-    #tela.blit(texto, texto_rect)
-    pygame.display.flip()
-    esperar_jogador()
-    
-def esperar_jogador():
+def esperar_jogador_start():
     esperando = True
     while esperando:
         relogio.tick(30)
@@ -78,6 +92,64 @@ def esperar_jogador():
                 esperando = False
             if event.type == pygame.KEYUP:
                 esperando = False
+            elif event.type == pygame.MOUSEBUTTONUP:
+                # Ignora o evento de clique do mouse
+                pass
+
+def esperar_jogador_over():
+    esperando = True
+    while esperando:
+        relogio.tick(30)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+               pygame.quit()  # Encerra o pygame
+               sys.exit()  # Sai do programa
+            if event.type == pygame.KEYUP:
+                 if event.key == pygame.K_r:  # Verifica se a tecla "R" foi pressionada
+                    esperando = False
+            elif event.type == pygame.MOUSEBUTTONUP:
+                # Ignora o evento de clique do mouse
+                pass
+            
+def tela_start():
+    dino_fundo = os.path.join(diretorio_img, "dino-capa.png")        
+    dino_fundo = pygame.image.load(dino_fundo).convert()
+    # Redimensiona a imagem de fundo para o tamanho da tela
+    dino_fundo = pygame.transform.scale(dino_fundo, (Largura, Altura))
+     # Desenha a imagem de fundo na superfície da tela
+    tela.blit(dino_fundo, (0, 0))
+
+    mensagem_botao('Pressione uma tecla para jogar', 20, (0,0,0), (255, 255, 255))
+    #texto = mensagem('Pressione uma tecla para jogar', 40, (0,0,0))
+    # Define a posição do texto
+    #texto_rect = texto.get_rect(center=(Largura/2, Altura/2))
+    # Desenha o texto na tela
+    #tela.blit(texto, texto_rect)
+    pygame.display.flip()
+    esperar_jogador_start()
+
+def tela_over():
+    dino_fundo = os.path.join(diretorio_img, "DinoOver.png")        
+    dino_fundo = pygame.image.load(dino_fundo).convert()
+    # Redimensiona a imagem de fundo para o tamanho da tela
+    dino_fundo = pygame.transform.scale(dino_fundo, (Largura, Altura))
+     # Desenha a imagem de fundo na superfície da tela
+    tela.blit(dino_fundo, (0, 0))
+
+    mensagem_botao_over('Pressione R para reiniciar', 20, (0,0,0), (255, 255, 255))
+    #texto = mensagem('Pressione uma tecla para jogar', 40, (0,0,0))
+    # Define a posição do texto
+    #texto_rect = texto.get_rect(center=(Largura/2, Altura/2))
+    # Desenha o texto na tela
+    #tela.blit(texto, texto_rect)
+    pygame.display.flip()
+   # Aguarda a entrada do jogador
+    esperar_jogador_over()
+
+    # Reinicia o jogo se a tecla R for pressionada
+    reiniciar_jogo()
+    
+
 #criando a classe do Dino
 class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
     
@@ -246,7 +318,10 @@ while True:
                     pass
                 else:
                     dino.pular()
-    
+
+            if event.key == K_r and colidiu == True:
+                reiniciar_jogo()
+                 
     colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
     todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
     
@@ -264,7 +339,10 @@ while True:
     if colidiu == True:
         if pontos_do_jogo % 100 == 0:
             pontos_do_jogo += 1
-        pass
+          
+        # Espera 10 segundos
+        time.sleep(0.2)  
+        tela_over()
     else:
         pontos_do_jogo += 1 # a cada interação do jogo no loop orincipal soma 1 ponto
         todas_as_sprites.update() # Atualiza todos os sprites no grupo 
