@@ -6,8 +6,6 @@ from random import randrange, choice
 import os
 import time
 
-
-
 pygame.init()
 pygame.mixer.init()
 
