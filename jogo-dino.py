@@ -1,10 +1,11 @@
 import pygame
 from pygame.locals import *
+import sys
 from sys import exit
 from random import randrange, choice
 import os
 import time
-import sys
+
 
 
 pygame.init()
