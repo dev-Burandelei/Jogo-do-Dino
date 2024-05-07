@@ -36,9 +36,11 @@ def reiniciar_jogo():
     pontos_do_jogo = 0
     velocidade_do_jogo = 10
     colidiu = False
+    #print("Colidiu = False") teste
     dino.rect.y = Altura - 64 - 96//2
     dino.pulo = False
     maritaca.rect.x = Largura
+    maritaca_baixa.rect.x = Largura
     cacto.rect.x = Largura
     escolha_obstaculo = choice([0, 1, 2])
 
@@ -369,7 +371,7 @@ while True:
                 else:
                     dino.pular()
             if event.key == pygame.K_DOWN: 
-                print("Tecla de seta para baixo pressionada") 
+                #print("Tecla de seta para baixo pressionada") 
                 dino.abaixar()
             if event.key == K_r and colidiu == True:
                 reiniciar_jogo()
@@ -387,6 +389,7 @@ while True:
             if (isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Maritaca_baixa)) and colidiu == False:
                 #som_colisao.play()
                 colidiu = True
+                #print("colidiu = true") 
             else:
                pass
     else:
