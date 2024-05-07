@@ -27,7 +27,7 @@ sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesh
 #som_colisao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
 #self.som_pular.set_volume(1) #aumentar o som da colisao
 colidiu = False
-escolha_obstaculo = choice([0, 1])
+escolha_obstaculo = choice([0, 1, 2])
 pontos_do_jogo = 0
 velocidade_do_jogo = 10
 
@@ -40,7 +40,7 @@ def reiniciar_jogo():
     dino.pulo = False
     maritaca.rect.x = Largura
     cacto.rect.x = Largura
-    escolha_obstaculo = choice([0, 1])
+    escolha_obstaculo = choice([0, 1, 2])
 
 def pontuacao(mensagem, tam_font, cor_texto):
     fonte = pygame.font.SysFont('comicsansms', tam_font, True, False) #fonte do texto
@@ -105,6 +105,7 @@ def esperar_jogador_over():
                sys.exit()  # Sai do programa
             if event.type == pygame.KEYUP:
                  if event.key == pygame.K_r:  # Verifica se a tecla "R" foi pressionada
+                    reiniciar_jogo()  # Reinicia o jogo
                     esperando = False
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Ignora o evento de clique do mouse
@@ -144,9 +145,6 @@ def tela_over():
     pygame.display.flip()
    # Aguarda a entrada do jogador
     esperar_jogador_over()
-
-    # Reinicia o jogo se a tecla R for pressionada
-    reiniciar_jogo()
     
 
 #criando a classe do Dino
@@ -163,20 +161,32 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
             img = sprite_sheet.subsurface((i*32,0), (32,32))  #recortar o 3 primeiros frames
             img = pygame.transform.scale(img, (32*3, 32*3)) #aumentar o tamanho da imagem
             self.imagens_dinossauro.append(img)
-        
+        self.imagens_dino_abaixado = []
+        for i in range(3, 5):  # Sprites 3 e 4 representam o dino abaixado
+            img2 = sprite_sheet.subsurface((i*32,0), (32,32))
+            img2 = pygame.transform.scale(img2, (32*3, 32*3))
+            self.imagens_dino_abaixado.append(img2)
+            
         self.index_lista = 0
-        self.image = self.imagens_dinossauro[self.index_lista] #estamos definindo self.image como a primeira imagem na lista de imagens do dinossauro.
+        self.index_lista_abaixado = 0
+        self.image = self.imagens_dinossauro[self.index_lista] # definindo self.image como a primeira imagem na lista de imagens do dinossauro.
 
         self.rect = self.image.get_rect() #pegar o retangulo ao redor do frame
         self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite do dinossauro
         self.posicao_y_ini = Altura - 64 - 96//2 #pegando o canto superior esquerdo do frame
         self.rect.center = (100, Altura-64) #posicionar o retangulo
         self.pulo = False
+        self.abaixado = False
         
     def pular(self): #se eu apertar espaço ele muda a variável pulo para true
         self.pulo = True
         #self.som_pular.play() #tocar som
-    
+    def abaixar(self): #se eu apertar seta para baixo ele muda a variável abaixar para true
+        self.abaixado = True
+        #self.som_pular.play() #tocar som
+    def desfazer_abaixar(self):
+        self.abaixado = False
+
     #metodo update 
     def update(self): #estamos atualizando a imagem do dinossauro para criar uma animação. 
         if self.pulo == True:
@@ -188,10 +198,20 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
                 self.rect.y += 20
             else:
                 self.rect.y = self.posicao_y_ini
-        if self.index_lista > 2: #criando o efeito de looping
-            self.index_lista = 0
-        self.index_lista += 0.25
-        self.image = self.imagens_dinossauro[int(self.index_lista)]
+                
+        if self.abaixado:
+            self.image = self.imagens_dino_abaixado[int(self.index_lista_abaixado) % len(self.imagens_dino_abaixado)]
+        else:
+            self.image = self.imagens_dinossauro[int(self.index_lista) % len(self.imagens_dinossauro)]
+
+        if self.abaixado:
+            if self.index_lista_abaixado > 1: # criando o efeito de looping para o dinossauro abaixado
+                self.index_lista_abaixado = 0
+            self.index_lista_abaixado += 0.25
+        else:
+            if self.index_lista > 2: # criando o efeito de looping para o dinossauro em pé
+                self.index_lista = 0
+            self.index_lista += 0.25
       
 
 todas_as_sprites = pygame.sprite.Group() #criando um grupo de sprites*
@@ -296,9 +316,40 @@ class Maritaca(pygame.sprite.Sprite):
 maritaca = Maritaca()
 todas_as_sprites.add(maritaca)
 
+class Maritaca_baixa(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.imagens_maritaca_baixa = []
+        for i in range(8, 10):
+            img = sprite_sheet.subsurface((i * 32, 0), (32, 32))  # recorta os dois últimos frames
+            img = pygame.transform.scale(img, (32 * 2, 32 * 2))  # aumenta o tamanho da imagem
+            self.imagens_maritaca_baixa.append(img)
+        
+        self.index_lista = 0
+        self.image = self.imagens_maritaca_baixa[self.index_lista]
+        self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite da maritaca para colisao
+        self.escolha = escolha_obstaculo 
+        self.rect = self.image.get_rect() #pegar o retangulo ao redor do frame
+        self.rect.center = (Largura, 356) #posicionar o retangulo
+        self.rect.x = Largura
+    
+    def update(self):
+        if self.escolha == 2:
+            if self.rect.topright[0] < 0:
+                self.rect.x = Largura #volta para o inicio
+            self.rect.x -= velocidade_do_jogo #vai se movimentar a cada 10 frames do jogo
+            if self.index_lista > 1: #criando o efeito de looping
+                self.index_lista = 0
+            self.index_lista += 0.25
+            self.image = self.imagens_maritaca_baixa[int(self.index_lista)]
+            
+maritaca_baixa = Maritaca_baixa()
+todas_as_sprites.add(maritaca_baixa)
+
 grupo_obstaculo = pygame.sprite.Group() #criando um grupo de obstáculos
 grupo_obstaculo.add(cacto) #add os obstáculos dentro do grupo
 grupo_obstaculo.add(maritaca) #add os obstáculos dentro do grupo
+grupo_obstaculo.add(maritaca_baixa) #add os obstáculos dentro do grupo
 
 relogio = pygame.time.Clock() #Criamos um objeto de relógio
 
@@ -317,23 +368,49 @@ while True:
                     pass
                 else:
                     dino.pular()
-
+            if event.key == pygame.K_DOWN: 
+                print("Tecla de seta para baixo pressionada") 
+                dino.abaixar()
             if event.key == K_r and colidiu == True:
                 reiniciar_jogo()
-                 
+                
+         # Verifica se a tecla de baixo foi solta para desfazer o abaixamento
+        if event.type == KEYUP:
+            if event.key == pygame.K_DOWN:
+                dino.desfazer_abaixar()
+            
     colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
     todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
     
-    if cacto.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0:
-        escolha_obstaculo = choice([0, 1])
+    if not dino.abaixado:  # Verifica se o dinossauro não está abaixado
+        for obstaculo in colisoes:
+            if (isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Maritaca_baixa)) and colidiu == False:
+                #som_colisao.play()
+                colidiu = True
+            else:
+               pass
+    else:
+        for obstaculo in colisoes:
+            #talvez tirar o pular junto
+            if isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) and colidiu == False:
+                #som_colisao.play()
+                colidiu = True
+            else:
+               pass
+                
+            
+    if cacto.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0 or maritaca_baixa.rect.topright[0] <= 0:
+        escolha_obstaculo = choice([0, 1, 2])
         cacto.rect.x = Largura
         maritaca.rect.x = Largura
+        maritaca_baixa.rect.x = Largura
         cacto.escolha = escolha_obstaculo
         maritaca.escolha = escolha_obstaculo
+        maritaca_baixa.escolha = escolha_obstaculo
             
-    if colisoes and colidiu == False:
+    #if colisoes and colidiu == False and colidiu_maritacabaixa == True:
         #som_colisao.play()
-        colidiu = True
+        #colidiu = True
         #pass #tirar quando inserir o som
     if colidiu == True:
         if pontos_do_jogo % 100 == 0:
