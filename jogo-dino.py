@@ -19,7 +19,7 @@ BRANCO = (255, 255, 255)
 tela = pygame.display.set_mode((Largura, Altura))
 
 pygame.display.set_caption('Dino Game') #definimos o título da janela do jogo como 'Dino'.
-sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets2.png")).convert_alpha()
+sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesheets4(colorido).png")).convert_alpha()
 
 #som_pontuacao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
 #self.som_pontuacao.set_volume(1) #aumentar o som da pontuacao
@@ -27,7 +27,7 @@ sprite_sheet = pygame.image.load(os.path.join(diretorio_img, "Jogo-dino-Spritesh
 #som_colisao = pygame.mixer.Sound(os.path.join(diretorio_audio, 'nome_arquivo'))
 #self.som_pular.set_volume(1) #aumentar o som da colisao
 colidiu = False
-escolha_obstaculo = choice([0, 1, 2])
+escolha_obstaculo = choice([0, 1, 2, 3])
 pontos_do_jogo = 0
 velocidade_do_jogo = 10
 
@@ -42,7 +42,8 @@ def reiniciar_jogo():
     maritaca.rect.x = Largura
     maritaca_baixa.rect.x = Largura
     cacto.rect.x = Largura
-    escolha_obstaculo = choice([0, 1, 2])
+    cactos.rect.x = Largura
+    escolha_obstaculo = choice([0, 1, 2, 3])
 
 def pontuacao(mensagem, tam_font, cor_texto):
     fonte = pygame.font.SysFont('comicsansms', tam_font, True, False) #fonte do texto
@@ -253,7 +254,7 @@ class Chao(pygame.sprite.Sprite):
     def update(self):
         self.rect.x -= self.velocidade  # Move o chão para a esquerda
         if self.rect.right < 0:  # Se o sprite do chão sair da tela à esquerda
-            self.rect.x += Largura  # Move o sprite do chão para o final da tela
+            self.rect.x += Largura + 100 # Move o sprite do chão para o final da tela
 
 # Criação dos sprites do chão
 largura_chao = Largura // (32 * 2) + 2  # Determina quantos sprites do chão são necessários para preencher a largura da tela
@@ -287,6 +288,28 @@ class Cacto(pygame.sprite.Sprite):
         
 cacto = Cacto()
 todas_as_sprites.add(cacto)
+
+class Cactos(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = sprite_sheet.subsurface((12*32, 0), (32, 32))
+        self.image = pygame.transform.scale(self.image, (32 * 3, 32 * 3))
+        self.rect = self.image.get_rect() #pegar o retangulo do cacto para posicionar ele na tela
+        self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite do cactp
+        self.escolha = escolha_obstaculo 
+        self.rect.center = (Largura, Altura - 64*1.1)
+        self.rect.x = Largura
+
+    
+    def update(self):
+        if self.escolha == 3:
+            if self.rect.topright[0] < 0:
+                self.rect.x = Largura #volta para o inicio
+            self.rect.x -= velocidade_do_jogo #vai se movimentar a cada 10 frames do jogo
+
+        
+cactos = Cactos()
+todas_as_sprites.add(cactos)
 
 class Maritaca(pygame.sprite.Sprite):
     def __init__(self):
@@ -322,7 +345,7 @@ class Maritaca_baixa(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.imagens_maritaca_baixa = []
-        for i in range(8, 10):
+        for i in range(10, 12):
             img = sprite_sheet.subsurface((i * 32, 0), (32, 32))  # recorta os dois últimos frames
             img = pygame.transform.scale(img, (32 * 2, 32 * 2))  # aumenta o tamanho da imagem
             self.imagens_maritaca_baixa.append(img)
@@ -350,6 +373,7 @@ todas_as_sprites.add(maritaca_baixa)
 
 grupo_obstaculo = pygame.sprite.Group() #criando um grupo de obstáculos
 grupo_obstaculo.add(cacto) #add os obstáculos dentro do grupo
+grupo_obstaculo.add(cactos) #add os obstáculos dentro do grupo
 grupo_obstaculo.add(maritaca) #add os obstáculos dentro do grupo
 grupo_obstaculo.add(maritaca_baixa) #add os obstáculos dentro do grupo
 
@@ -386,7 +410,7 @@ while True:
     
     if not dino.abaixado:  # Verifica se o dinossauro não está abaixado
         for obstaculo in colisoes:
-            if (isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Maritaca_baixa)) and colidiu == False:
+            if (isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Maritaca_baixa) or isinstance(obstaculo, Cactos)) and colidiu == False:
                 #som_colisao.play()
                 colidiu = True
                 #print("colidiu = true") 
@@ -395,21 +419,23 @@ while True:
     else:
         for obstaculo in colisoes:
             #talvez tirar o pular junto
-            if isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) and colidiu == False:
+            if isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Cacto) and colidiu == False:
                 #som_colisao.play()
                 colidiu = True
             else:
                pass
                 
             
-    if cacto.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0 or maritaca_baixa.rect.topright[0] <= 0:
-        escolha_obstaculo = choice([0, 1, 2])
+    if cacto.rect.topright[0] <= 0 or cactos.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0 or maritaca_baixa.rect.topright[0] <= 0:
+        escolha_obstaculo = choice([0, 1, 2, 3])
         cacto.rect.x = Largura
+        cactos.rect.x = Largura
         maritaca.rect.x = Largura
         maritaca_baixa.rect.x = Largura
         cacto.escolha = escolha_obstaculo
         maritaca.escolha = escolha_obstaculo
         maritaca_baixa.escolha = escolha_obstaculo
+        cactos.escolha = escolha_obstaculo
             
     #if colisoes and colidiu == False and colidiu_maritacabaixa == True:
         #som_colisao.play()
