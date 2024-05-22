@@ -115,14 +115,14 @@ def esperar_jogador_over():
                 pass
             
 def tela_start():
-    dino_fundo = os.path.join(diretorio_img, "dino-capa.png")        
+    dino_fundo = os.path.join(diretorio_img, "dino-capa1.png")        
     dino_fundo = pygame.image.load(dino_fundo).convert()
     # Redimensiona a imagem de fundo para o tamanho da tela
     dino_fundo = pygame.transform.scale(dino_fundo, (Largura, Altura))
      # Desenha a imagem de fundo na superfície da tela
     tela.blit(dino_fundo, (0, 0))
 
-    mensagem_botao('Pressione uma tecla para jogar', 20, (0,0,0), (255, 255, 255))
+    #mensagem_botao('Pressione uma tecla para jogar', 20, (0,0,0), (255, 255, 255))
     #texto = mensagem('Pressione uma tecla para jogar', 40, (0,0,0))
     # Define a posição do texto
     #texto_rect = texto.get_rect(center=(Largura/2, Altura/2))
@@ -131,15 +131,20 @@ def tela_start():
     pygame.display.flip()
     esperar_jogador_start()
 
-def tela_over():
-    dino_fundo = os.path.join(diretorio_img, "DinoOver.png")        
+def tela_over(pontos_do_jogo):
+    dino_fundo = os.path.join(diretorio_img, "dino-capa2.png")        
     dino_fundo = pygame.image.load(dino_fundo).convert()
     # Redimensiona a imagem de fundo para o tamanho da tela
     dino_fundo = pygame.transform.scale(dino_fundo, (Largura, Altura))
      # Desenha a imagem de fundo na superfície da tela
     tela.blit(dino_fundo, (0, 0))
 
-    mensagem_botao_over('Pressione R para reiniciar', 20, (0,0,0), (255, 255, 255))
+     # Exibir a pontuação final
+    texto_pontuacao_final = pontuacao(f'{pontos_do_jogo}', 30, (0, 0, 0))
+    texto_rect = texto_pontuacao_final.get_rect(center=(Largura/2, Altura/2.7))
+    tela.blit(texto_pontuacao_final, texto_rect)
+    
+    #mensagem_botao_over('Pressione R para reiniciar', 20, (0,0,0), (255, 255, 255))
     #texto = mensagem('Pressione uma tecla para jogar', 40, (0,0,0))
     # Define a posição do texto
     #texto_rect = texto.get_rect(center=(Largura/2, Altura/2))
@@ -447,7 +452,7 @@ while True:
           
         # Espera 10 segundos
         time.sleep(0.2)  
-        tela_over()
+        tela_over(pontos_do_jogo)
     else:
         pontos_do_jogo += 1 # a cada interação do jogo no loop orincipal soma 1 ponto
         todas_as_sprites.update() # Atualiza todos os sprites no grupo 
@@ -463,6 +468,5 @@ while True:
         #print(velocidade_do_jogo)
             
     tela.blit(exibir_pontuacao, (520,30))
- 
     pygame.display.flip() # Atualiza a tela inteira para o usuário ver as mudanças.
         
