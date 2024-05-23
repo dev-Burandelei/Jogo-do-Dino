@@ -467,6 +467,5 @@ while True:
         
         #print(velocidade_do_jogo)
             
-    tela.blit(exibir_pontuacao, (520,30))
+    tela.blit(exibir_pontuacao, (300,100))
     pygame.display.flip() # Atualiza a tela inteira para o usuário ver as mudanças.
-        

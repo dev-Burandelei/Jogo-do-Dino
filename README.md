@@ -17,3 +17,7 @@
 
 ## Para Rodar o Jogo
 * Comando: `python jogo-dino.py`
+
+## Como Jogar:
+* ↓ (seta para baixo) para baixar o dinossauro
+* Use a tecla espaço para pular
