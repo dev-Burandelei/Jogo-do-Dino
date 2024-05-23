@@ -19,5 +19,5 @@
 * Comando: `python jogo-dino.py`
 
 ## Como Jogar:
-* ↓ (seta para baixo) para baixar o dinossauro
+* ↓ (seta para baixo) para abaixar o dinossauro
 * Use a tecla espaço para pular
