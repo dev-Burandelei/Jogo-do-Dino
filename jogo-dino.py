@@ -45,6 +45,92 @@ def reiniciar_jogo():
     cactos.rect.x = Largura
     escolha_obstaculo = choice([0, 1, 2, 3])
 
+def main():
+    global pontos_do_jogo, colidiu, velocidade_do_jogo
+    while True:
+        relogio.tick(30) #Limita o jogo a rodar a 30 frames por segundo.
+        tela.fill(BRANCO) # Preenche a tela com a cor branca a cada iteração do loop
+        for event in pygame.event.get():
+            if event.type == QUIT: #Se o evento for do tipo QUIT (fechar a janela), o jogo é encerrado.
+                pygame.quit()
+                exit()
+            if event.type == KEYDOWN:
+                if event.key == K_SPACE: #se a tecla for igual à espaco, então chama a função pular
+                    if dino.rect.y != dino.posicao_y_ini: #impede de apertar espaço várias vezes
+                        pass
+                    else:
+                        dino.pular()
+                if event.key == pygame.K_DOWN: 
+                    #print("Tecla de seta para baixo pressionada") 
+                    dino.abaixar()
+                if event.key == K_r and colidiu == True:
+                    reiniciar_jogo()
+                    
+            # Verifica se a tecla de baixo foi solta para desfazer o abaixamento
+            if event.type == KEYUP:
+                if event.key == pygame.K_DOWN:
+                    dino.desfazer_abaixar()
+                
+        colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
+        todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
+        
+        if not dino.abaixado:  # Verifica se o dinossauro não está abaixado
+            for obstaculo in colisoes:
+                if (isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Maritaca_baixa) or isinstance(obstaculo, Cactos)) and colidiu == False:
+                    #som_colisao.play()
+                    colidiu = True
+                    #print("colidiu = true") 
+                else:
+                    pass
+        else:
+            for obstaculo in colisoes:
+                #talvez tirar o pular junto
+                if isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Cacto) and colidiu == False:
+                    #som_colisao.play()
+                    colidiu = True
+                else:
+                    pass
+                    
+                
+        if cacto.rect.topright[0] <= 0 or cactos.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0 or maritaca_baixa.rect.topright[0] <= 0:
+            escolha_obstaculo = choice([0, 1, 2, 3])
+            cacto.rect.x = Largura
+            cactos.rect.x = Largura
+            maritaca.rect.x = Largura
+            maritaca_baixa.rect.x = Largura
+            cacto.escolha = escolha_obstaculo
+            maritaca.escolha = escolha_obstaculo
+            maritaca_baixa.escolha = escolha_obstaculo
+            cactos.escolha = escolha_obstaculo
+                
+        #if colisoes and colidiu == False and colidiu_maritacabaixa == True:
+            #som_colisao.play()
+            #colidiu = True
+            #pass #tirar quando inserir o som
+        if colidiu == True:
+            if pontos_do_jogo % 100 == 0:
+                pontos_do_jogo += 1
+            
+            # Espera 10 segundos
+            time.sleep(0.2)  
+            tela_over(pontos_do_jogo)
+        else:
+            pontos_do_jogo += 1 # a cada interação do jogo no loop orincipal soma 1 ponto
+            todas_as_sprites.update() # Atualiza todos os sprites no grupo 
+            exibir_pontuacao = pontuacao(pontos_do_jogo, 40, (0,0,0))
+            
+        if pontos_do_jogo % 100 ==  0:
+            #som_pontuacao.play()
+            if velocidade_do_jogo >= 23:
+                velocidade_do_jogo += 0 #velocidade continua constante
+            else:
+                velocidade_do_jogo += 1
+            
+            #print(velocidade_do_jogo)
+                
+        tela.blit(exibir_pontuacao, (300,100))
+        pygame.display.flip() # Atualiza a tela inteira para o usuário ver as mudanças.
+
 def pontuacao(mensagem, tam_font, cor_texto):
     fonte = pygame.font.SysFont('comicsansms', tam_font, True, False) #fonte do texto
     msg = f'{mensagem}'
@@ -348,7 +434,7 @@ todas_as_sprites.add(maritaca)
 
 class Maritaca_baixa(pygame.sprite.Sprite):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+        super().__init__()
         self.imagens_maritaca_baixa = []
         for i in range(10, 12):
             img = sprite_sheet.subsurface((i * 32, 0), (32, 32))  # recorta os dois últimos frames
@@ -357,24 +443,30 @@ class Maritaca_baixa(pygame.sprite.Sprite):
         
         self.index_lista = 0
         self.image = self.imagens_maritaca_baixa[self.index_lista]
-        self.mask = pygame.mask.from_surface(self.image) #criando uma máscara da sprite da maritaca para colisao
+        self.mask = pygame.mask.from_surface(self.image)  # criando uma máscara da sprite da maritaca para colisao
         self.escolha = escolha_obstaculo 
-        self.rect = self.image.get_rect() #pegar o retangulo ao redor do frame
-        self.rect.center = (Largura, 356) #posicionar o retangulo
+        self.rect = self.image.get_rect()  # pegar o retangulo ao redor do frame
+        self.rect.center = (Largura, 357)  # posicionar o retangulo
         self.rect.x = Largura
     
     def update(self):
         if self.escolha == 2:
             if self.rect.topright[0] < 0:
-                self.rect.x = Largura #volta para o inicio
-            self.rect.x -= velocidade_do_jogo #vai se movimentar a cada 10 frames do jogo
-            if self.index_lista > 1: #criando o efeito de looping
-                self.index_lista = 0
-            self.index_lista += 0.25
-            self.image = self.imagens_maritaca_baixa[int(self.index_lista)]
+                self.rect.x = Largura  # volta para o inicio
+            self.rect.x -= velocidade_do_jogo  # vai se movimentar a cada frame do jogo
             
+            if self.index_lista >= len(self.imagens_maritaca_baixa):
+                self.index_lista = 0
+            self.image = self.imagens_maritaca_baixa[int(self.index_lista)]
+            self.index_lista += 0.25
+            
+            # Atualiza a máscara sempre que a imagem mudar
+            self.mask = pygame.mask.from_surface(self.image)
+
+# Criar instância e adicionar ao grupo de sprites
 maritaca_baixa = Maritaca_baixa()
 todas_as_sprites.add(maritaca_baixa)
+
 
 grupo_obstaculo = pygame.sprite.Group() #criando um grupo de obstáculos
 grupo_obstaculo.add(cacto) #add os obstáculos dentro do grupo
@@ -386,86 +478,6 @@ relogio = pygame.time.Clock() #Criamos um objeto de relógio
 
 tela_start()
 
-while True:
-    relogio.tick(30) #Limita o jogo a rodar a 30 frames por segundo.
-    tela.fill(BRANCO) # Preenche a tela com a cor branca a cada iteração do loop
-    for event in pygame.event.get():
-        if event.type == QUIT: #Se o evento for do tipo QUIT (fechar a janela), o jogo é encerrado.
-            pygame.quit()
-            exit()
-        if event.type == KEYDOWN:
-            if event.key == K_SPACE: #se a tecla for igual à espaco, então chama a função pular
-                if dino.rect.y != dino.posicao_y_ini: #impede de apertar espaço várias vezes
-                    pass
-                else:
-                    dino.pular()
-            if event.key == pygame.K_DOWN: 
-                #print("Tecla de seta para baixo pressionada") 
-                dino.abaixar()
-            if event.key == K_r and colidiu == True:
-                reiniciar_jogo()
-                
-         # Verifica se a tecla de baixo foi solta para desfazer o abaixamento
-        if event.type == KEYUP:
-            if event.key == pygame.K_DOWN:
-                dino.desfazer_abaixar()
-            
-    colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
-    todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
-    
-    if not dino.abaixado:  # Verifica se o dinossauro não está abaixado
-        for obstaculo in colisoes:
-            if (isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Maritaca_baixa) or isinstance(obstaculo, Cactos)) and colidiu == False:
-                #som_colisao.play()
-                colidiu = True
-                #print("colidiu = true") 
-            else:
-               pass
-    else:
-        for obstaculo in colisoes:
-            #talvez tirar o pular junto
-            if isinstance(obstaculo, Cacto) or isinstance(obstaculo, Maritaca) or isinstance(obstaculo, Cacto) and colidiu == False:
-                #som_colisao.play()
-                colidiu = True
-            else:
-               pass
-                
-            
-    if cacto.rect.topright[0] <= 0 or cactos.rect.topright[0] <= 0 or maritaca.rect.topright[0] <= 0 or maritaca_baixa.rect.topright[0] <= 0:
-        escolha_obstaculo = choice([0, 1, 2, 3])
-        cacto.rect.x = Largura
-        cactos.rect.x = Largura
-        maritaca.rect.x = Largura
-        maritaca_baixa.rect.x = Largura
-        cacto.escolha = escolha_obstaculo
-        maritaca.escolha = escolha_obstaculo
-        maritaca_baixa.escolha = escolha_obstaculo
-        cactos.escolha = escolha_obstaculo
-            
-    #if colisoes and colidiu == False and colidiu_maritacabaixa == True:
-        #som_colisao.play()
-        #colidiu = True
-        #pass #tirar quando inserir o som
-    if colidiu == True:
-        if pontos_do_jogo % 100 == 0:
-            pontos_do_jogo += 1
-          
-        # Espera 10 segundos
-        time.sleep(0.2)  
-        tela_over(pontos_do_jogo)
-    else:
-        pontos_do_jogo += 1 # a cada interação do jogo no loop orincipal soma 1 ponto
-        todas_as_sprites.update() # Atualiza todos os sprites no grupo 
-        exibir_pontuacao = pontuacao(pontos_do_jogo, 40, (0,0,0))
-        
-    if pontos_do_jogo % 100 ==  0:
-        #som_pontuacao.play()
-        if velocidade_do_jogo >= 23:
-            velocidade_do_jogo += 0 #velocidade continua constante
-        else:
-            velocidade_do_jogo += 1
-        
-        #print(velocidade_do_jogo)
-            
-    tela.blit(exibir_pontuacao, (300,100))
-    pygame.display.flip() # Atualiza a tela inteira para o usuário ver as mudanças.
+# Inicia o jogo chamando a função main
+if __name__ == "__main__":
+    main()
