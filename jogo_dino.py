@@ -5,6 +5,7 @@ from sys import exit
 from random import randrange, choice
 import os
 import time
+from deteccao_de_mao import acao_especial
 
 pygame.init()
 pygame.mixer.init()
@@ -45,6 +46,8 @@ def reiniciar_jogo():
     cactos.rect.x = Largura
     escolha_obstaculo = choice([0, 1, 2, 3])
 
+relogio = pygame.time.Clock() #Criamos um objeto de relógio
+
 def main():
     global pontos_do_jogo, colidiu, velocidade_do_jogo
     while True:
@@ -60,17 +63,25 @@ def main():
                         pass
                     else:
                         dino.pular()
+                        #acao = 1
+                        # Verifica se ocorreu ação especial
+                        #acao = acao_especial()  # Verifica se ocorreu uma ação especial (mão detectada)
+                        #if acao == 1 and dino.rect.y == dino.posicao_y_ini:  # Se a ação especial for 1 e o dino não estiver pulando
+                         #   dino.pular()
                 if event.key == pygame.K_DOWN: 
                     #print("Tecla de seta para baixo pressionada") 
                     dino.abaixar()
                 if event.key == K_r and colidiu == True:
                     reiniciar_jogo()
-                    
+            acao = 0
+            # Verifica se ocorreu ação especial
+            acao = acao_especial()  # Verifica se ocorreu uma ação especial (mão detectada)
+            if acao == 1 and dino.rect.y == dino.posicao_y_ini:  # Se a ação especial for 1 e o dino não estiver pulando
+                dino.pular()       
             # Verifica se a tecla de baixo foi solta para desfazer o abaixamento
             if event.type == KEYUP:
                 if event.key == pygame.K_DOWN:
                     dino.desfazer_abaixar()
-                
         colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
         todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
         
@@ -474,10 +485,7 @@ grupo_obstaculo.add(cactos) #add os obstáculos dentro do grupo
 grupo_obstaculo.add(maritaca) #add os obstáculos dentro do grupo
 grupo_obstaculo.add(maritaca_baixa) #add os obstáculos dentro do grupo
 
-relogio = pygame.time.Clock() #Criamos um objeto de relógio
 
 tela_start()
-
 # Inicia o jogo chamando a função main
-if __name__ == "__main__":
-    main()
+main()
