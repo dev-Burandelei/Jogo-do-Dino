@@ -17,21 +17,23 @@ def iniciar_jogo():
     os.system("python jogo_dino.py")
     
 def focar_janela_jogo():
+   # Tentar encontrar a janela do jogo
     while True:
-        # Tentar encontrar a janela do jogo
         try:
             janela_jogo = gw.getWindowsWithTitle('Dino Game')[0]
         except IndexError:
-            print("Janela 'Jogo-do-Dino' não encontrada. Tentando novamente...")
+            print("Janela 'Dino Game' não encontrada. Tentando novamente...")
             time.sleep(1)
             continue
         
         # Ativar e focar a janela do jogo
         janela_jogo.activate()
         if not janela_jogo.isActive:
-            print("A janela 'Jogo-do-Dino' não está corretamente ativa.")
-            return
-        break
+            print("A janela 'Dino Game' não está corretamente ativa.")
+            return False
+        
+        print("Janela do jogo encontrada e focada.")
+        return True
 
 def enviar_tecla():
     pyautogui.keyDown('space')
@@ -48,7 +50,8 @@ def detectar_mao():
     Hands = hands.Hands(max_num_hands=1)  # número máximo de mãos que o algoritmo reconhece
     mpDraw = mp.solutions.drawing_utils  # desenhar as ligações entre os pontos nas mãos
     dedo_levantado = False  # Estado do dedo (levantado ou não)
-
+    focar_janela_jogo()  # Foca a janela do jogo
+    
     while True:
         success, img = video.read()
         if not success:
@@ -79,10 +82,11 @@ def detectar_mao():
                 cv2.rectangle(img, (80, 10), (200, 110), (255, 0, 0), -1)
                 cv2.putText(img, str(contador), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 255, 255), 5)
                 
-                focar_janela_jogo()  # Foca a janela do jogo
+                
                 # Verifica se o dedo está levantado
                 if contador == 1:
-                    if not dedo_levantado:  # Se o dedo não estava levantado anteriormente  
+                    if not dedo_levantado:  # Se o dedo não estava levantado anteriormente 
+                        focar_janela_jogo()  # Foca a janela do jogo
                         enviar_tecla()  # Envia a tecla de espaço
                         print("Acionado")
                         dedo_levantado = True  # Atualiza o estado para levantado
