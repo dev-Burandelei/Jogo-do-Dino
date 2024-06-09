@@ -4,16 +4,40 @@ import pygame
 import multiprocessing
 import os
 import pyautogui  # Usado para simular teclas do teclado
+import time
+import pygetwindow as gw
+import ctypes
+import ctypes.util
 
 def acao_especial():
-    acao = 1
-    #print(acao)
-    return acao
+    pyautogui.press("space")
 
 def iniciar_jogo():
     # Inicia o jogo
     os.system("python jogo_dino.py")
+    
+def focar_janela_jogo():
+    while True:
+        # Tentar encontrar a janela do jogo
+        try:
+            janela_jogo = gw.getWindowsWithTitle('Dino Game')[0]
+        except IndexError:
+            print("Janela 'Jogo-do-Dino' não encontrada. Tentando novamente...")
+            time.sleep(1)
+            continue
+        
+        # Ativar e focar a janela do jogo
+        janela_jogo.activate()
+        if not janela_jogo.isActive:
+            print("A janela 'Jogo-do-Dino' não está corretamente ativa.")
+            return
+        break
 
+def enviar_tecla():
+    pyautogui.keyDown('space')
+    # Enviar a tecla de espaço
+    print("Tecla de espaço enviada com sucesso.")
+    
 def detectar_mao():
     # Inicializa o Pygame (necessário para enviar eventos)
     pygame.init()
@@ -23,6 +47,7 @@ def detectar_mao():
     hands = mp.solutions.hands  # configuração do mediapipe
     Hands = hands.Hands(max_num_hands=1)  # número máximo de mãos que o algoritmo reconhece
     mpDraw = mp.solutions.drawing_utils  # desenhar as ligações entre os pontos nas mãos
+    dedo_levantado = False  # Estado do dedo (levantado ou não)
 
     while True:
         success, img = video.read()
@@ -53,12 +78,16 @@ def detectar_mao():
 
                 cv2.rectangle(img, (80, 10), (200, 110), (255, 0, 0), -1)
                 cv2.putText(img, str(contador), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 255, 255), 5)
-
-                # Chama a função especial se o contador for igual a 1
+                
+                focar_janela_jogo()  # Foca a janela do jogo
+                # Verifica se o dedo está levantado
                 if contador == 1:
-                    acao_especial()  # Chama a função para pressionar a tecla de espaço
-                    print("Acionado")
-            
+                    if not dedo_levantado:  # Se o dedo não estava levantado anteriormente  
+                        enviar_tecla()  # Envia a tecla de espaço
+                        print("Acionado")
+                        dedo_levantado = True  # Atualiza o estado para levantado
+                else:
+                    dedo_levantado = False  # Atualiza o estado para não levantado
                     
         cv2.imshow('Imagem', img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -68,11 +97,17 @@ def detectar_mao():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    # Criar e iniciar processos para detectar mãos e iniciar o jogo
+    # Criar e iniciar processos para iniciar o jogo e detectar mãos
     process_jogo = multiprocessing.Process(target=iniciar_jogo)
     process_deteccao = multiprocessing.Process(target=detectar_mao)
 
+    # Iniciar o jogo primeiro
     process_jogo.start()
+
+    # Esperar até que a janela do jogo esteja aberta
+    focar_janela_jogo()
+
+    # Iniciar a detecção de mãos depois que a janela do jogo estiver focada
     process_deteccao.start()
 
     # Aguardar os processos terminarem

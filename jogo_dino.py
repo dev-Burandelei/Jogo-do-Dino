@@ -73,11 +73,7 @@ def main():
                     dino.abaixar()
                 if event.key == K_r and colidiu == True:
                     reiniciar_jogo()
-            acao = 0
-            # Verifica se ocorreu ação especial
-            acao = acao_especial()  # Verifica se ocorreu uma ação especial (mão detectada)
-            if acao == 1 and dino.rect.y == dino.posicao_y_ini:  # Se a ação especial for 1 e o dino não estiver pulando
-                dino.pular()       
+              
             # Verifica se a tecla de baixo foi solta para desfazer o abaixamento
             if event.type == KEYUP:
                 if event.key == pygame.K_DOWN:
