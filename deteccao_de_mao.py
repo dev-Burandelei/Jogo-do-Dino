@@ -9,8 +9,6 @@ import pygetwindow as gw
 import ctypes
 import ctypes.util
 
-def acao_especial():
-    pyautogui.press("space")
 
 def iniciar_jogo():
     # Inicia o jogo
@@ -107,9 +105,6 @@ if __name__ == "__main__":
 
     # Iniciar o jogo primeiro
     process_jogo.start()
-
-    # Esperar até que a janela do jogo esteja aberta
-    focar_janela_jogo()
 
     # Iniciar a detecção de mãos depois que a janela do jogo estiver focada
     process_deteccao.start()
