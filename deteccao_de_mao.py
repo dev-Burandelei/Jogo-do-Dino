@@ -33,10 +33,10 @@ def focar_janela_jogo():
         print("Janela do jogo encontrada e focada.")
         return True
 
-def enviar_tecla():
-    pyautogui.keyDown('space')
-    # Enviar a tecla de espaço
-    print("Tecla de espaço enviada com sucesso.")
+def acao_especial():
+    # Simula o evento de pressionamento da tecla de espaço
+    event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)
+    pygame.event.post(event)
     
 def detectar_mao():
     # Inicializa o Pygame (necessário para enviar eventos)
@@ -48,8 +48,8 @@ def detectar_mao():
     Hands = hands.Hands(max_num_hands=1)  # número máximo de mãos que o algoritmo reconhece
     mpDraw = mp.solutions.drawing_utils  # desenhar as ligações entre os pontos nas mãos
     dedo_levantado = False  # Estado do dedo (levantado ou não)
-    focar_janela_jogo()  # Foca a janela do jogo
     
+    focar_janela_jogo()  # Foca a janela do jogo
     while True:
         success, img = video.read()
         if not success:
@@ -82,14 +82,30 @@ def detectar_mao():
                 
                 
                 # Verifica se o dedo está levantado
-                if contador == 1:
-                    if not dedo_levantado:  # Se o dedo não estava levantado anteriormente 
-                        focar_janela_jogo()  # Foca a janela do jogo
-                        enviar_tecla()  # Envia a tecla de espaço
-                        print("Acionado")
-                        dedo_levantado = True  # Atualiza o estado para levantado
-                else:
+                if contador == 1 and not dedo_levantado:  # Se o dedo foi levantado
+                    print("Acionado - Iniciar")
+                    # Abre o arquivo 'comandos.txt' no modo de adição
+                    with open("comandos.txt", "a") as arquivo:
+                        # Escreve a palavra 'iniciar' no arquivo
+                        arquivo.write("iniciar\n")
+                    dedo_levantado = True  # Atualiza o estado para levantado
+                elif contador == 2 and not dedo_levantado:  # Se o dedo foi levantado
+                    print("Acionado - Pulo")
+                    # Abre o arquivo 'comandos.txt' no modo de adição
+                    with open("comandos.txt", "a") as arquivo:
+                        # Escreve a palavra 'pular' no arquivo
+                        arquivo.write("pular\n")
+                    dedo_levantado = True  # Atualiza o estado para levantado
+                elif contador == 3 and not dedo_levantado:  # Se o dedo foi levantado
+                    print("Acionado - reiniciar")
+                    # Abre o arquivo 'comandos.txt' no modo de adição
+                    with open("comandos.txt", "a") as arquivo:
+                        # Escreve a palavra 'pular' no arquivo
+                        arquivo.write("reiniciar\n")
+                    dedo_levantado = True  # Atualiza o estado para levantado
+                elif contador != 1 and contador != 2 and contador != 3:
                     dedo_levantado = False  # Atualiza o estado para não levantado
+
                     
         cv2.imshow('Imagem', img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -103,12 +119,15 @@ if __name__ == "__main__":
     process_jogo = multiprocessing.Process(target=iniciar_jogo)
     process_deteccao = multiprocessing.Process(target=detectar_mao)
 
+    # Inicializa o Pygame (necessário para enviar eventos)
+    pygame.init()
     # Iniciar o jogo primeiro
     process_jogo.start()
 
     # Iniciar a detecção de mãos depois que a janela do jogo estiver focada
     process_deteccao.start()
-
+    
     # Aguardar os processos terminarem
     process_jogo.join()
     process_deteccao.join()
+    

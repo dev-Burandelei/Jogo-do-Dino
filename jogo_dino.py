@@ -5,7 +5,6 @@ from sys import exit
 from random import randrange, choice
 import os
 import time
-from deteccao_de_mao import acao_especial
 
 pygame.init()
 pygame.mixer.init()
@@ -32,6 +31,9 @@ escolha_obstaculo = choice([0, 1, 2, 3])
 pontos_do_jogo = 0
 velocidade_do_jogo = 10
 
+# Variável para armazenar o timestamp do último acesso
+ultimo_acesso_comandos = 0
+
 def reiniciar_jogo():
     global colidiu, escolha_obstaculo, pontos_do_jogo, velocidade_do_jogo
     pontos_do_jogo = 0
@@ -48,36 +50,51 @@ def reiniciar_jogo():
 
 relogio = pygame.time.Clock() #Criamos um objeto de relógio
 
+def ler_comandos():
+    global ultimo_acesso_comandos
+    comandos = []
+    try:
+        # Verifica o timestamp de modificação do arquivo
+        timestamp_atual = os.path.getmtime("comandos.txt")
+        if timestamp_atual > ultimo_acesso_comandos:
+            ultimo_acesso_comandos = timestamp_atual
+            with open("comandos.txt", "r") as arquivo:
+                comandos = arquivo.readlines()
+    except FileNotFoundError:
+        print("Arquivo comandos.txt não encontrado.")
+    return [comando.strip() for comando in comandos]
+
+def executar_comando(comando):
+    if comando == "pular":
+        print("Comando 'pular' detectado.")
+        dino.pular()  # Ação de pular no jogo
+    elif comando == "abaixar":
+        print("Comando 'abaixar' detectado.")
+        dino.abaixar()  # Ação de abaixar no jogo
+        time.sleep(1)
+        dino.desfazer_abaixar()
+    elif comando == "reiniciar":
+        reiniciar_jogo()
+        
 def main():
     global pontos_do_jogo, colidiu, velocidade_do_jogo
     while True:
         relogio.tick(30) #Limita o jogo a rodar a 30 frames por segundo.
         tela.fill(BRANCO) # Preenche a tela com a cor branca a cada iteração do loop
+        
+         # Ler e executar comandos do arquivo
+        comandos = ler_comandos()
+        for comando in comandos:
+            executar_comando(comando)
+
+        # Limpa o arquivo após ler os comandos
+        open("comandos.txt", "w").close()
+        
         for event in pygame.event.get():
             if event.type == QUIT: #Se o evento for do tipo QUIT (fechar a janela), o jogo é encerrado.
                 pygame.quit()
                 exit()
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE: #se a tecla for igual à espaco, então chama a função pular
-                    if dino.rect.y != dino.posicao_y_ini: #impede de apertar espaço várias vezes
-                        pass
-                    else:
-                        dino.pular()
-                        #acao = 1
-                        # Verifica se ocorreu ação especial
-                        #acao = acao_especial()  # Verifica se ocorreu uma ação especial (mão detectada)
-                        #if acao == 1 and dino.rect.y == dino.posicao_y_ini:  # Se a ação especial for 1 e o dino não estiver pulando
-                         #   dino.pular()
-                if event.key == pygame.K_DOWN: 
-                    #print("Tecla de seta para baixo pressionada") 
-                    dino.abaixar()
-                if event.key == K_r and colidiu == True:
-                    reiniciar_jogo()
-              
-            # Verifica se a tecla de baixo foi solta para desfazer o abaixamento
-            if event.type == KEYUP:
-                if event.key == pygame.K_DOWN:
-                    dino.desfazer_abaixar()
+            
         colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculo, False, pygame.sprite.collide_mask) #lista de colisões, vai receber o objeto que colidiu com o dino
         todas_as_sprites.draw(tela) # Desenha todos os sprites do grupo 
         
@@ -178,6 +195,7 @@ def mensagem_botao_over(mensagem, tam_font, cor_texto, cor_botao):
     # Desenhar o texto na tela
     tela.blit(texto, texto_rect)
 
+
 def esperar_jogador_start():
     esperando = True
     while esperando:
@@ -206,7 +224,17 @@ def esperar_jogador_over():
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Ignora o evento de clique do mouse
                 pass
-            
+def detectar_comando():
+    comando_detectado = False
+    while not comando_detectado:
+        # Verifica se o número 1 está no arquivo de comandos
+        with open('comandos.txt', 'r') as arquivo:
+            conteudo = arquivo.read()
+            if 'iniciar' in conteudo:
+                comando_detectado = True
+        # Aguarda um pouco antes de verificar novamente
+        time.sleep(0.5)
+                
 def tela_start():
     dino_fundo = os.path.join(diretorio_img, "dino-capa1.png")        
     dino_fundo = pygame.image.load(dino_fundo).convert()
@@ -222,7 +250,8 @@ def tela_start():
     # Desenha o texto na tela
     #tela.blit(texto, texto_rect)
     pygame.display.flip()
-    esperar_jogador_start()
+    # Aguarda a detecção do número 1 no arquivo de comandos
+    detectar_comando()
 
 def tela_over(pontos_do_jogo):
     dino_fundo = os.path.join(diretorio_img, "dino-capa2.png")        
