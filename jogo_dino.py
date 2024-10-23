@@ -67,13 +67,14 @@ def ler_comandos():
 def executar_comando(comando):
     if comando == "pular":
         print("Comando 'pular' detectado.")
+        dino.desfazer_abaixar()
         dino.pular()  # Ação de pular no jogo
     elif comando == "abaixar":
         print("Comando 'abaixar' detectado.")
         dino.abaixar()  # Ação de abaixar no jogo
-        time.sleep(1)
-        dino.desfazer_abaixar()
-    elif comando == "reiniciar":
+        #time.sleep(1)
+        #dino.desfazer_abaixar()
+    elif comando == "reiniciar" and colidiu:
         reiniciar_jogo()
         
 def main():
@@ -309,7 +310,8 @@ class Dino(pygame.sprite.Sprite): # Dino será um tipo de sprite.
         self.abaixado = False
         
     def pular(self): #se eu apertar espaço ele muda a variável pulo para true
-        self.pulo = True
+        if self.rect.bottom == Altura - 32 * 2 + 48:  # Apenas pula se estiver no chão
+            self.pulo = True
         #self.som_pular.play() #tocar som
     def abaixar(self): #se eu apertar seta para baixo ele muda a variável abaixar para true
         self.abaixado = True

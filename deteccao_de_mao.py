@@ -81,15 +81,16 @@ def detectar_mao():
                 cv2.putText(img, str(contador), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 255, 255), 5)
                 
                 
-                # Verifica se o dedo está levantado
-                if contador == 1 and not dedo_levantado:  # Se o dedo foi levantado
+                 # Verifica se o dedo está levantado
+                if contador <= 1 and not dedo_levantado:  # Se o dedo foi levantado
                     print("Acionado - Iniciar")
                     # Abre o arquivo 'comandos.txt' no modo de adição
                     with open("comandos.txt", "a") as arquivo:
                         # Escreve a palavra 'iniciar' no arquivo
                         arquivo.write("iniciar\n")
+                        arquivo.write("abaixar\n")
                     dedo_levantado = True  # Atualiza o estado para levantado
-                elif contador == 2 and not dedo_levantado:  # Se o dedo foi levantado
+                elif contador >= 2 and not dedo_levantado:  # Se o dedo foi levantado
                     print("Acionado - Pulo")
                     # Abre o arquivo 'comandos.txt' no modo de adição
                     with open("comandos.txt", "a") as arquivo:
@@ -105,6 +106,8 @@ def detectar_mao():
                     dedo_levantado = True  # Atualiza o estado para levantado
                 elif contador != 1 and contador != 2 and contador != 3:
                     dedo_levantado = False  # Atualiza o estado para não levantado
+
+
 
                     
         cv2.imshow('Imagem', img)
